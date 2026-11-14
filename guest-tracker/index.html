@@ -66,6 +66,8 @@
     td a { overflow-wrap: anywhere }
     .status { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 5px 10px; background: #f3eee9; color: #796b61; font-size: 12px; font-weight: 650; white-space: nowrap }
     .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b7a99e }
+    .status.type-cr { background: #f8e9e6; color: #87574e }
+    .status.type-cd { background: #f2eee7; color: #66584c }
     .status.seen { background: #edf5ed; color: var(--green) }
     .status.seen::before { background: #6d9a72 }
     .muted { color: var(--muted) }
@@ -77,8 +79,8 @@
       .row { align-items: flex-start }
       .row h2 { padding-top: 7px }
       .row button { padding: 9px 12px }
-      th:nth-child(4), td:nth-child(4) { display: none }
-      table { min-width: 500px }
+      th:nth-child(5), td:nth-child(5) { display: none }
+      table { min-width: 560px }
     }
   </style>
 </head>
@@ -103,6 +105,7 @@
           <thead>
             <tr>
               <th>Tên khách</th>
+              <th>Loại thiệp</th>
               <th>Trạng thái</th>
               <th>Lượt xem</th>
               <th>Lần xem gần nhất</th>
@@ -111,7 +114,7 @@
           </thead>
           <tbody id="guests">
             <tr>
-              <td colspan="5" class="muted">Đang tải danh sách…</td>
+              <td colspan="6" class="muted">Đang tải danh sách…</td>
             </tr>
           </tbody>
         </table>
@@ -124,9 +127,10 @@
       const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNF4HEETfdLXCTjbNVah6-FoFqGBT-NxKVmHs8tNyQ-JfH5fFL8IZK97E7WKL2qRIVMQ/exec';
       const $ = s => document.querySelector(s), notice = $('#notice'), body = $('#guests');
       function config() { if (!APPS_SCRIPT_URL.startsWith('https://script.google.com/') || APPS_SCRIPT_URL.includes('PASTE_')) throw Error('Hãy dán URL Web app /exec vào APPS_SCRIPT_URL trong mã trang.'); return { url: APPS_SCRIPT_URL } }
+      function cardTypeOf(guest) { const match = String(guest.id || '').match(/^(cd|cr)_/i); if (match) return match[1].toLowerCase(); const saved = String(guest.cardType || '').toLowerCase(); return saved === 'cr' ? 'cr' : 'cd' }
       function jsonp(url) { return new Promise((resolve, reject) => { const cb = 'guestCb' + Date.now() + Math.random().toString(36).slice(2), s = document.createElement('script'), timer = setTimeout(() => { delete window[cb]; s.remove(); reject(Error('Apps Script không phản hồi sau 15 giây. Hãy kiểm tra URL /exec và triển khai Web app.')) }, 15000); window[cb] = data => { clearTimeout(timer); delete window[cb]; s.remove(); resolve(data) }; s.onerror = () => { clearTimeout(timer); delete window[cb]; s.remove(); reject(Error('Không tải được Apps Script. Hãy kiểm tra URL /exec, quyền truy cập Web app là “Bất kỳ ai” và đã triển khai phiên bản mới nhất.')) }; s.src = url + '&callback=' + cb; document.head.append(s) }) }
-      async function load() { try { const c = config(); notice.textContent = 'Đang tải danh sách…'; notice.className = 'note muted'; const d = await jsonp(c.url + '?action=list'); if (!d.ok) throw Error(d.error || 'Không thể đọc dữ liệu.'); const base = new URL('../' + $('#cardType').value + '/', location.href); body.innerHTML = ''; if (!d.guests.length) body.innerHTML = '<tr><td colspan="5" class="muted">Chưa có khách mời.</td></tr>'; d.guests.forEach(g => { const link = new URL(base); link.searchParams.set('guest', g.name); const tr = document.createElement('tr'), name = document.createElement('td'); name.textContent = g.name; tr.append(name); const st = document.createElement('td'); st.innerHTML = g.views > 0 ? '<span class="status seen">Đã xem</span>' : '<span class="status">Chưa xem</span>'; tr.append(st); const count = document.createElement('td'); count.textContent = g.views || 0; tr.append(count); const last = document.createElement('td'); last.textContent = g.lastViewed || '—'; tr.append(last); const cell = document.createElement('td'), copy = document.createElement('button'); copy.className = 'button secondary'; copy.textContent = 'Sao chép'; copy.onclick = () => navigator.clipboard.writeText(link.href).then(() => notice.textContent = 'Đã sao chép link cho ' + g.name); cell.append(copy); tr.append(cell); body.append(tr) }); notice.textContent = 'Đã tải ' + d.guests.length + ' khách mời.' } catch (e) { notice.textContent = e.message; notice.className = 'note error' } }
-      $('#reload').onclick = load; $('#cardType').onchange = load; $('#addForm').onsubmit = async e => { e.preventDefault(); const button = e.currentTarget.querySelector('button'), names = $('#guestNames').value.split(/\r?\n/).map(name => name.trim()).filter(Boolean); if (!names.length) return; try { const c = config(); button.disabled = true; notice.textContent = `Đang lưu ${names.length} khách mời…`; const guests = names.map(name => ({ id: crypto.randomUUID(), name: name.slice(0, 120) })); await fetch(c.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'add', guests: JSON.stringify(guests) }) }); await new Promise(resolve => setTimeout(resolve, 700)); const check = await jsonp(c.url + '?action=list'); if (!check.ok) throw Error(check.error || 'Apps Script đang chạy phiên bản cũ. Hãy cập nhật Code.gs và triển khai phiên bản mới.'); const namesInSheet = new Set(check.guests.map(g => g.name)); const missing = guests.filter(g => !namesInSheet.has(g.name)); if (missing.length) throw Error(`Chưa thấy ${missing.length} khách trong Sheet. Hãy kiểm tra đúng Google Sheet và triển khai phiên bản Code.gs mới nhất.`); $('#guestNames').value = ''; notice.textContent = `Đã lưu ${guests.length} khách vào Google Sheets.`; await load() } catch (err) { notice.textContent = err.message; notice.className = 'note error' } finally { button.disabled = false } };
+      async function load() { try { const c = config(); notice.textContent = 'Đang tải danh sách…'; notice.className = 'note muted'; const d = await jsonp(c.url + '?action=list'); if (!d.ok) throw Error(d.error || 'Không thể đọc dữ liệu.'); body.innerHTML = ''; if (!d.guests.length) body.innerHTML = '<tr><td colspan="6" class="muted">Chưa có khách mời.</td></tr>'; d.guests.forEach(g => { const type = cardTypeOf(g), base = new URL('../' + type + '/', location.href), link = new URL(base); link.searchParams.set('guest', g.name); const tr = document.createElement('tr'), name = document.createElement('td'); name.textContent = g.name; tr.append(name); const typeCell = document.createElement('td'); typeCell.innerHTML = '<span class="status type-' + type + '">' + type.toUpperCase() + '</span>'; tr.append(typeCell); const st = document.createElement('td'); st.innerHTML = g.views > 0 ? '<span class="status seen">Đã xem</span>' : '<span class="status">Chưa xem</span>'; tr.append(st); const count = document.createElement('td'); count.textContent = g.views || 0; tr.append(count); const last = document.createElement('td'); last.textContent = g.lastViewed || '—'; tr.append(last); const cell = document.createElement('td'), copy = document.createElement('button'); copy.className = 'button secondary'; copy.textContent = 'Sao chép link ' + type.toUpperCase(); copy.onclick = () => navigator.clipboard.writeText(link.href).then(() => notice.textContent = 'Đã sao chép link cho ' + g.name); cell.append(copy); tr.append(cell); body.append(tr) }); notice.textContent = 'Đã tải ' + d.guests.length + ' khách mời.' } catch (e) { notice.textContent = e.message; notice.className = 'note error' } }
+      $('#reload').onclick = load; $('#cardType').onchange = load; $('#addForm').onsubmit = async e => { e.preventDefault(); const button = e.currentTarget.querySelector('button'), names = $('#guestNames').value.split(/\r?\n/).map(name => name.trim()).filter(Boolean); if (!names.length) return; try { const c = config(); button.disabled = true; notice.textContent = `Đang lưu ${names.length} khách mời…`; const cardType = $('#cardType').value; const guests = names.map(name => ({ id: cardType + '_' + crypto.randomUUID(), name: name.slice(0, 120) })); await fetch(c.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'add', guests: JSON.stringify(guests) }) }); await new Promise(resolve => setTimeout(resolve, 700)); const check = await jsonp(c.url + '?action=list'); if (!check.ok) throw Error(check.error || 'Apps Script đang chạy phiên bản cũ. Hãy cập nhật Code.gs và triển khai phiên bản mới.'); const namesInSheet = new Set(check.guests.map(g => g.name)); const missing = guests.filter(g => !namesInSheet.has(g.name)); if (missing.length) throw Error(`Chưa thấy ${missing.length} khách trong Sheet. Hãy kiểm tra đúng Google Sheet và triển khai phiên bản Code.gs mới nhất.`); $('#guestNames').value = ''; notice.textContent = `Đã lưu ${guests.length} khách vào Google Sheets.`; await load() } catch (err) { notice.textContent = err.message; notice.className = 'note error' } finally { button.disabled = false } };
       const q = new URLSearchParams(location.search); if (q.has('refresh')) load(); else load();
     })();
   </script>
