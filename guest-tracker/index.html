@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
 
 <head>
@@ -121,7 +121,7 @@
   <script>
     (() => {
       // Dán URL Web app kết thúc bằng /exec và cùng mã bí mật với Code.gs vào đây.
-      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUAWwJqO6cxyRK3jyT-yK93_hxTnyN7_JkUSo0zo4j5Mm5vugeRIbuCYCuJAM76Br9ug/exec';
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNF4HEETfdLXCTjbNVah6-FoFqGBT-NxKVmHs8tNyQ-JfH5fFL8IZK97E7WKL2qRIVMQ/exec';
       const $ = s => document.querySelector(s), notice = $('#notice'), body = $('#guests');
       function config() { if (!APPS_SCRIPT_URL.startsWith('https://script.google.com/') || APPS_SCRIPT_URL.includes('PASTE_')) throw Error('Hãy dán URL Web app /exec vào APPS_SCRIPT_URL trong mã trang.'); return { url: APPS_SCRIPT_URL } }
       function jsonp(url) { return new Promise((resolve, reject) => { const cb = 'guestCb' + Date.now() + Math.random().toString(36).slice(2), s = document.createElement('script'), timer = setTimeout(() => { delete window[cb]; s.remove(); reject(Error('Apps Script không phản hồi sau 15 giây. Hãy kiểm tra URL /exec và triển khai Web app.')) }, 15000); window[cb] = data => { clearTimeout(timer); delete window[cb]; s.remove(); resolve(data) }; s.onerror = () => { clearTimeout(timer); delete window[cb]; s.remove(); reject(Error('Không tải được Apps Script. Hãy kiểm tra URL /exec, quyền truy cập Web app là “Bất kỳ ai” và đã triển khai phiên bản mới nhất.')) }; s.src = url + '&callback=' + cb; document.head.append(s) }) }
