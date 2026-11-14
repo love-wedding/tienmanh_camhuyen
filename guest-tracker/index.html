@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quản lý khách mời</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #342923;
+      --muted: #81746a;
+      --rose: #a96e63;
+      --rose-dark: #87574e;
+      --line: #eadfd5;
+      --paper: #fffdfa;
+      --soft: #f6eee8;
+      --green: #477451;
+    }
+    * { box-sizing: border-box }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 15% 0%, #f3e5dc 0, transparent 38%), linear-gradient(145deg, #fbf8f3, #f1e9e2);
+      color: var(--ink);
+      font: 15px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 64px 24px 72px }
+    h1 { margin: 0; font: 500 clamp(30px, 5vw, 43px)/1.15 Georgia, "Times New Roman", serif; letter-spacing: -.035em }
+    h1::after { content: ""; display: block; width: 54px; height: 2px; margin: 17px 0 13px; background: #c99f8a }
+    h2 { margin: 0; font: 500 22px/1.25 Georgia, "Times New Roman", serif }
+    .wrap > .muted { max-width: 580px; color: var(--muted); font-size: 15px }
+    .card {
+      margin: 22px 0; padding: 28px 30px; border: 1px solid #ebdfd5; border-radius: 18px;
+      background: color-mix(in srgb, var(--paper) 94%, transparent); box-shadow: 0 14px 38px #604b3b0b;
+    }
+    .card:first-of-type h2 { margin-bottom: 20px }
+    label { display: inline-block; margin: 0 0 8px; color: #66564c; font-size: 13px; font-weight: 650; letter-spacing: .025em }
+    select, textarea {
+      display: block; width: 100%; border: 1px solid #dfd1c5; border-radius: 11px; background: #fff;
+      color: var(--ink); font: inherit; outline: none; transition: border-color .18s, box-shadow .18s;
+    }
+    select { width: min(100%, 260px); height: 46px; margin-bottom: 17px; padding: 0 42px 0 14px; cursor: pointer }
+    textarea { min-height: 138px; padding: 14px 16px; resize: vertical; line-height: 1.65 }
+    textarea::placeholder { color: #ad9f94 }
+    select:focus, textarea:focus { border-color: #b98173; box-shadow: 0 0 0 4px #b981731a }
+    form button { margin-top: 15px }
+    button, .button {
+      border: 0; border-radius: 10px; padding: 11px 17px; background: var(--rose); color: white;
+      font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform .16s, background .16s, box-shadow .16s;
+    }
+    button:hover, .button:hover { background: var(--rose-dark); box-shadow: 0 5px 14px #87574e2b; transform: translateY(-1px) }
+    button:active, .button:active { transform: translateY(0) }
+    button:disabled { opacity: .55; cursor: wait; transform: none }
+    .button { display: inline-block; text-decoration: none; padding: 8px 12px; font-size: 13px; white-space: nowrap }
+    .secondary { background: var(--soft); color: #604c40 }
+    .secondary:hover { background: #eddfd5; color: #49372d }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 15px }
+    .scroll { overflow-x: auto; border: 1px solid #eee5dd; border-radius: 12px }
+    table { width: 100%; border-collapse: collapse; background: #fff; min-width: 620px }
+    th, td { text-align: left; padding: 14px 15px; border-bottom: 1px solid #f0e9e3; vertical-align: middle }
+    th { background: #faf6f2; color: #7c6c61; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase }
+    tbody tr:last-child td { border-bottom: 0 }
+    tbody tr:hover { background: #fdfaf7 }
+    td:first-child { color: #46372e; font-weight: 600 }
+    td a { overflow-wrap: anywhere }
+    .status { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 5px 10px; background: #f3eee9; color: #796b61; font-size: 12px; font-weight: 650; white-space: nowrap }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #b7a99e }
+    .status.seen { background: #edf5ed; color: var(--green) }
+    .status.seen::before { background: #6d9a72 }
+    .muted { color: var(--muted) }
+    .note { min-height: 22px; margin-top: 13px; color: var(--muted); font-size: 13px }
+    .error { color: #a12626 }
+    @media (max-width: 600px) {
+      .wrap { padding: 36px 15px 48px }
+      .card { margin: 15px 0; padding: 21px 18px; border-radius: 15px }
+      .row { align-items: flex-start }
+      .row h2 { padding-top: 7px }
+      .row button { padding: 9px 12px }
+      th:nth-child(4), td:nth-child(4) { display: none }
+      table { min-width: 500px }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <h1>Quản lý khách mời</h1>
+    <div class="muted">Thêm khách, tạo link thiệp riêng và theo dõi lượt mở.</div>
+    <section class="card">
+      <h2>Thêm khách mời</h2>
+      <label for="cardType">Lo&#7841;i thi&#7879;p</label> <select id="cardType"><option value="cd">Thi&#7879;p CD</option><option value="cr">Thi&#7879;p CR</option></select>
+      <form id="addForm"><textarea id="guestNames" placeholder="Nhập mỗi tên khách trên một dòng" required
+          maxlength="12000"></textarea><button>Thêm danh sách và tạo link</button></form>
+      <div id="notice" class="note muted">Đang tải danh sách…</div>
+    </section>
+    <section class="card">
+      <div class="row">
+        <h2>Danh sách khách</h2><button id="reload" class="secondary">Tải lại</button>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Tên khách</th>
+              <th>Trạng thái</th>
+              <th>Lượt xem</th>
+              <th>Lần xem gần nhất</th>
+              <th>Link riêng</th>
+            </tr>
+          </thead>
+          <tbody id="guests">
+            <tr>
+              <td colspan="5" class="muted">Đang tải danh sách…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      // Dán URL Web app kết thúc bằng /exec và cùng mã bí mật với Code.gs vào đây.
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUAWwJqO6cxyRK3jyT-yK93_hxTnyN7_JkUSo0zo4j5Mm5vugeRIbuCYCuJAM76Br9ug/exec';
+      const $ = s => document.querySelector(s), notice = $('#notice'), body = $('#guests');
+      function config() { if (!APPS_SCRIPT_URL.startsWith('https://script.google.com/') || APPS_SCRIPT_URL.includes('PASTE_')) throw Error('Hãy dán URL Web app /exec vào APPS_SCRIPT_URL trong mã trang.'); return { url: APPS_SCRIPT_URL } }
+      function jsonp(url) { return new Promise((resolve, reject) => { const cb = 'guestCb' + Date.now() + Math.random().toString(36).slice(2), s = document.createElement('script'), timer = setTimeout(() => { delete window[cb]; s.remove(); reject(Error('Apps Script không phản hồi sau 15 giây. Hãy kiểm tra URL /exec và triển khai Web app.')) }, 15000); window[cb] = data => { clearTimeout(timer); delete window[cb]; s.remove(); resolve(data) }; s.onerror = () => { clearTimeout(timer); delete window[cb]; s.remove(); reject(Error('Không tải được Apps Script. Hãy kiểm tra URL /exec, quyền truy cập Web app là “Bất kỳ ai” và đã triển khai phiên bản mới nhất.')) }; s.src = url + '&callback=' + cb; document.head.append(s) }) }
+      async function load() { try { const c = config(); notice.textContent = 'Đang tải danh sách…'; notice.className = 'note muted'; const d = await jsonp(c.url + '?action=list'); if (!d.ok) throw Error(d.error || 'Không thể đọc dữ liệu.'); const base = new URL('../' + $('#cardType').value + '/', location.href); body.innerHTML = ''; if (!d.guests.length) body.innerHTML = '<tr><td colspan="5" class="muted">Chưa có khách mời.</td></tr>'; d.guests.forEach(g => { const link = new URL(base); link.searchParams.set('guest', g.name); const tr = document.createElement('tr'), name = document.createElement('td'); name.textContent = g.name; tr.append(name); const st = document.createElement('td'); st.innerHTML = g.views > 0 ? '<span class="status seen">Đã xem</span>' : '<span class="status">Chưa xem</span>'; tr.append(st); const count = document.createElement('td'); count.textContent = g.views || 0; tr.append(count); const last = document.createElement('td'); last.textContent = g.lastViewed || '—'; tr.append(last); const cell = document.createElement('td'), copy = document.createElement('button'); copy.className = 'button secondary'; copy.textContent = 'Sao chép'; copy.onclick = () => navigator.clipboard.writeText(link.href).then(() => notice.textContent = 'Đã sao chép link cho ' + g.name); cell.append(copy); tr.append(cell); body.append(tr) }); notice.textContent = 'Đã tải ' + d.guests.length + ' khách mời.' } catch (e) { notice.textContent = e.message; notice.className = 'note error' } }
+      $('#reload').onclick = load; $('#cardType').onchange = load; $('#addForm').onsubmit = async e => { e.preventDefault(); const button = e.currentTarget.querySelector('button'), names = $('#guestNames').value.split(/\r?\n/).map(name => name.trim()).filter(Boolean); if (!names.length) return; try { const c = config(); button.disabled = true; notice.textContent = `Đang lưu ${names.length} khách mời…`; const guests = names.map(name => ({ id: crypto.randomUUID(), name: name.slice(0, 120) })); await fetch(c.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ action: 'add', guests: JSON.stringify(guests) }) }); await new Promise(resolve => setTimeout(resolve, 700)); const check = await jsonp(c.url + '?action=list'); if (!check.ok) throw Error(check.error || 'Apps Script đang chạy phiên bản cũ. Hãy cập nhật Code.gs và triển khai phiên bản mới.'); const namesInSheet = new Set(check.guests.map(g => g.name)); const missing = guests.filter(g => !namesInSheet.has(g.name)); if (missing.length) throw Error(`Chưa thấy ${missing.length} khách trong Sheet. Hãy kiểm tra đúng Google Sheet và triển khai phiên bản Code.gs mới nhất.`); $('#guestNames').value = ''; notice.textContent = `Đã lưu ${guests.length} khách vào Google Sheets.`; await load() } catch (err) { notice.textContent = err.message; notice.className = 'note error' } finally { button.disabled = false } };
+      const q = new URLSearchParams(location.search); if (q.has('refresh')) load(); else load();
+    })();
+  </script>
+</body>
+
+</html>
+
