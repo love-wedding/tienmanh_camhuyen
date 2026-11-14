@@ -10275,14 +10275,14 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
     <script>
         (() => {
             const guestName = new URLSearchParams(window.location.search).get('guest');
-            const endpoint = 'https://script.google.com/macros/s/AKfycbxUAWwJqO6cxyRK3jyT-yK93_hxTnyN7_JkUSo0zo4j5Mm5vugeRIbuCYCuJAM76Br9ug/exec';
-            if (guestName && endpoint.startsWith('https://script.google.com/')) {
-                const greeting = document.createElement('div');
-                greeting.textContent = 'Trân trọng kính mời ' + guestName;
-                greeting.setAttribute('style', 'position:fixed;z-index:99999;top:12px;left:50%;transform:translateX(-50%);max-width:calc(100% - 24px);padding:10px 18px;border-radius:24px;background:#fffaf2;color:#614d42;box-shadow:0 3px 14px #302b2730;font:500 15px/1.4 system-ui,sans-serif;text-align:center');
-                document.body.appendChild(greeting);
+            const endpoint = 'https://data-tc3q.onrender.com';
+            if (guestName && endpoint.startsWith('http')) {
+                // const greeting = document.createElement('div');
+                // greeting.textContent = 'Trân trọng kính mời ' + guestName;
+                // greeting.setAttribute('style', 'position:fixed;z-index:99999;top:12px;left:50%;transform:translateX(-50%);max-width:calc(100% - 24px);padding:10px 18px;border-radius:24px;background:#fffaf2;color:#614d42;box-shadow:0 3px 14px #302b2730;font:500 15px/1.4 system-ui,sans-serif;text-align:center');
+                // document.body.appendChild(greeting);
                 const beacon = new Image();
-                beacon.src = endpoint + '?action=view&name=' + encodeURIComponent(guestName) + '&t=' + Date.now();
+                beacon.src = endpoint + '/api/view?name=' + encodeURIComponent(guestName) + '&t=' + Date.now();
             }
         })();
     </script>

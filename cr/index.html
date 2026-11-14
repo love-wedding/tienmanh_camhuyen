@@ -10272,8 +10272,8 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
     <script>
         (() => {
             const guestName = new URLSearchParams(window.location.search).get('guest');
-            const endpoint = 'https://script.google.com/macros/s/AKfycbxUAWwJqO6cxyRK3jyT-yK93_hxTnyN7_JkUSo0zo4j5Mm5vugeRIbuCYCuJAM76Br9ug/exec';
-            if (guestName && endpoint.startsWith('https://script.google.com/')) {
+            const endpoint = 'https://data-tc3q.onrender.com';
+            if (guestName && endpoint.startsWith('https')) {
                 const beacon = new Image();
                 beacon.src = endpoint + '?action=view&name=' + encodeURIComponent(guestName) + '&t=' + Date.now();
             }
