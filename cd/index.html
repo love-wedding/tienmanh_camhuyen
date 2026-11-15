@@ -3119,7 +3119,7 @@
             left: 0px;
             position: relative;
             width: 420px;
-            height: 860px;
+            height: 850px;
         }
 
         #w-f98h6g9r .section-wrapper {
@@ -6395,7 +6395,7 @@
             left: 0px;
             position: relative;
             width: 420px;
-            height: 860px;
+            height: 850px;
         }
 
         #w-f98h6g9r .section-wrapper {
@@ -10061,6 +10061,10 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
             const BUTTON_ID = "w-qha5rilg";
             const BLOCK_KEYWORD = "create_form_data";
             const isGuestLink = new URLSearchParams(window.location.search).has("guest");
+            if (isGuestLink) {
+                const invitationSection = document.getElementById("w-f98h6g9r");
+                if (invitationSection) invitationSection.style.height = "468px";
+            }
 
             const wishesRoot = document.createElement("section");
             wishesRoot.id = "cd-wishes-list";
