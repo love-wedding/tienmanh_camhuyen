@@ -3119,7 +3119,7 @@
             left: 0px;
             position: relative;
             width: 420px;
-            height: 460px;
+            height: 850px;
         }
 
         #w-f98h6g9r .section-wrapper {
@@ -6395,7 +6395,7 @@
             left: 0px;
             position: relative;
             width: 420px;
-            height: 460px;
+            height: 850px;
         }
 
         #w-f98h6g9r .section-wrapper {
@@ -10058,6 +10058,76 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
             const BUTTON_ID = "w-qha5rilg";
             const BLOCK_KEYWORD = "create_form_data";
 
+            const wishesRoot = document.createElement("section");
+            wishesRoot.id = "cr-wishes-list";
+            wishesRoot.setAttribute("aria-live", "polite");
+            wishesRoot.innerHTML = '<h3 class="cr-wishes-title">Lời chúc từ bạn bè</h3><p class="cr-wishes-status">Đang tải lời chúc...</p><div class="cr-wishes-items"></div>';
+            const wishesStyle = document.createElement("style");
+            wishesStyle.textContent = `
+                #cr-wishes-list { box-sizing: border-box; width: min(100% - 32px, 560px); height: 360px; max-height: 360px; margin: 24px auto 32px; padding: 18px; border: 1px solid #eaded5; border-radius: 14px; background: #fffaf6; color: #51443d; font-family: inherit; overflow: hidden; display: flex; flex-direction: column; }
+                #cr-wishes-list .cr-wishes-title { margin: 0 0 14px; text-align: center; font-size: 20px; font-weight: 600; }
+                #cr-wishes-list .cr-wishes-status { margin: 0; text-align: center; color: #88776c; font-size: 14px; }
+                #cr-wishes-list .cr-wishes-items { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-right: 6px; }
+                #cr-wishes-list .cr-wish { padding: 12px 0; border-top: 1px solid #eee3dc; }
+                #cr-wishes-list .cr-wish:first-child { border-top: 0; }
+                #cr-wishes-list .cr-wish-name { margin: 0 0 5px; font-weight: 600; }
+                #cr-wishes-list .cr-wish-time { margin: 0 0 6px; color: #88776c; font-size: 12px; }
+                #cr-wishes-list .cr-wish-message { margin: 0; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+            `;
+            document.head.appendChild(wishesStyle);
+
+            function renderWishes(data) {
+                const status = wishesRoot.querySelector(".cr-wishes-status");
+                const items = wishesRoot.querySelector(".cr-wishes-items");
+                const wishes = Array.isArray(data) ? data : null;
+                items.replaceChildren();
+                if (!Array.isArray(wishes)) {
+                    status.textContent = "Chưa tải được lời chúc. Vui lòng thử tải lại trang.";
+                    return;
+                }
+                if (!wishes.length) {
+                    status.textContent = "Chưa có lời chúc nào. Hãy gửi lời chúc đầu tiên nhé!";
+                    return;
+                }
+                status.remove();
+                wishes.slice().reverse().forEach((wish) => {
+                    const card = document.createElement("article");
+                    card.className = "cr-wish";
+                    const name = document.createElement("p");
+                    name.className = "cr-wish-name";
+                    name.textContent = wish.name || "Một vị khách";
+                    card.appendChild(name);
+                    if (wish.time) {
+                        const time = document.createElement("p");
+                        time.className = "cr-wish-time";
+                        const sentAt = new Date(wish.time);
+                        time.textContent = Number.isNaN(sentAt.getTime()) ? wish.time : sentAt.toLocaleString("vi-VN");
+                        card.appendChild(time);
+                    }
+                    const message = document.createElement("p");
+                    message.className = "cr-wish-message";
+                    message.textContent = wish.message || "";
+                    card.appendChild(message);
+                    items.appendChild(card);
+                });
+            }
+
+            function loadWishes() {
+                const status = wishesRoot.querySelector(".cr-wishes-status");
+                if (status) status.textContent = "Đang tải lời chúc...";
+                originalFetch(GOOGLE_SCRIPT_URL + "?t=" + Date.now())
+                    .then((response) => {
+                        if (!response.ok) throw new Error("Không tải được danh sách lời chúc");
+                        return response.json();
+                    })
+                    .then(renderWishes)
+                    .catch((error) => {
+                        console.error("Không thể tải lời chúc:", error);
+                        const currentStatus = wishesRoot.querySelector(".cr-wishes-status");
+                        if (currentStatus) currentStatus.textContent = "Chưa tải được lời chúc. Vui lòng thử tải lại trang.";
+                    });
+            }
+
             let isSending = false;
 
             /* ===== 1. CHẶN REQUEST TỚI create_form_data (fetch + XHR) ===== */
@@ -10138,6 +10208,7 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
                     });
 
                     form.reset();
+                    loadWishes();
                     await Swal.fire({
                         icon: "success",
                         title: "Cảm ơn bạn!",
@@ -10161,6 +10232,7 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
             /* ===== 3. CHẶN HANDLER CŨ CỦA WEBCAKE (capture phase) ===== */
             document.addEventListener("submit", function (e) {
                 if (e.target && e.target.id === FORM_ID) {
+                    if (!wishesRoot.isConnected) e.target.insertAdjacentElement("afterend", wishesRoot);
                     e.preventDefault();
                     e.stopImmediatePropagation();
                     handleSubmit();
@@ -10169,11 +10241,19 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
 
             document.addEventListener("click", function (e) {
                 if (e.target.closest && e.target.closest("#" + BUTTON_ID)) {
+                    const form = document.getElementById(FORM_ID);
+                    if (form && !wishesRoot.isConnected) form.insertAdjacentElement("afterend", wishesRoot);
                     e.preventDefault();
                     e.stopImmediatePropagation();
                     handleSubmit();
                 }
             }, true);
+
+            const form = document.getElementById(FORM_ID);
+            if (form) {
+                form.insertAdjacentElement("afterend", wishesRoot);
+                loadWishes();
+            }
         })();
     </script>
 
