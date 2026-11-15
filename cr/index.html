@@ -10057,6 +10057,11 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
             const FORM_ID = "qm643fs2";
             const BUTTON_ID = "w-qha5rilg";
             const BLOCK_KEYWORD = "create_form_data";
+            const isGuestLink = new URLSearchParams(window.location.search).has("guest");
+            if (isGuestLink) {
+                const invitationSection = document.getElementById("w-f98h6g9r");
+                if (invitationSection) invitationSection.style.height = "468px";
+            }
 
             const wishesRoot = document.createElement("section");
             wishesRoot.id = "cr-wishes-list";
@@ -10232,7 +10237,7 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
             /* ===== 3. CHẶN HANDLER CŨ CỦA WEBCAKE (capture phase) ===== */
             document.addEventListener("submit", function (e) {
                 if (e.target && e.target.id === FORM_ID) {
-                    if (!wishesRoot.isConnected) e.target.insertAdjacentElement("afterend", wishesRoot);
+                    if (!isGuestLink && !wishesRoot.isConnected) e.target.insertAdjacentElement("afterend", wishesRoot);
                     e.preventDefault();
                     e.stopImmediatePropagation();
                     handleSubmit();
@@ -10242,7 +10247,7 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
             document.addEventListener("click", function (e) {
                 if (e.target.closest && e.target.closest("#" + BUTTON_ID)) {
                     const form = document.getElementById(FORM_ID);
-                    if (form && !wishesRoot.isConnected) form.insertAdjacentElement("afterend", wishesRoot);
+                    if (form && !isGuestLink && !wishesRoot.isConnected) form.insertAdjacentElement("afterend", wishesRoot);
                     e.preventDefault();
                     e.stopImmediatePropagation();
                     handleSubmit();
@@ -10250,7 +10255,7 @@ https://maps.app.goo.gl/6cLvxjsnC4fLQZL29
             }, true);
 
             const form = document.getElementById(FORM_ID);
-            if (form) {
+            if (form && !isGuestLink) {
                 form.insertAdjacentElement("afterend", wishesRoot);
                 loadWishes();
             }
